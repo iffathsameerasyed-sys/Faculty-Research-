@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Faculty Research Publication Tracker</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f2f4f7; }
+    header { background: #003366; color: white; padding: 20px; text-align: center; }
+    header h1 { font-size: 36px; font-weight: bold; margin: 0; }
+    .container { width: 90%; margin: auto; margin-top: 20px; }
+    h2 { color: #003366; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    input, select, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; }
+    button { background: #003366; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+    button.secondary { background: #225ea8; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    th { background: #003366; color: white; }
+    .filters { display: flex; gap: 20px; flex-wrap: wrap; }
+    .filter-box { width: 30%; min-width: 220px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 10px; }
+    .stat { background: #eef2f8; padding: 12px; border-radius: 6px; }
+    .row-actions { display: flex; gap: 8px; }
+
+    /* Footer Names Box */
+    .footer-names {
+        text-align: center;
+        margin: 50px 0;
+        font-size: 20px;
+        font-weight: bold;
+        color: #003366;
+        border-top: 2px solid #003366;
+        padding-top: 15px;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <p style="text-align:center; color:white; font-size:18px; margin-top:5px;">
+        <b>Department of Computer Applications</b><br>
+        Vignan University
+    <h1>Faculty Research Publication Tracker</h1>
+    </p>
+</header>
+
+<div class="container">
+
+    <!-- Add Publication Form -->
+    <div class="card">
+        <h2>Add publication</h2>
+        <form id="pub-form">
+
+            <!-- Faculty name as text input (unchanged) -->
+            <label for="faculty">Faculty name</label>
+            <input id="faculty" type="text" required />
+
+            <label for="title">Publication title</label>
+            <input id="title" type="text" required />
+
+            <label for="type">Publication type</label>
+            <select id="type" required>
+                <option value="Journal">Journal</option>
+                <option value="Conference">Conference</option>
+                <option value="Book">Book</option>
+            </select>
+
+            <label for="indexing">Indexing</label>
+            <select id="indexing" required>
+                <option value="None / ESCI">None / ESCI</option>
+                <option value="ESCI">ESCI</option>
+                <option value="Scopus">Scopus</option>
+                <option value="SCI">SCI</option>
+                <option value="UGC">UGC</option>
+            </select>
+
+            <label for="quartile">Quartile (Q1–Q4)</label>
+            <select id="quartile">
+                <option value="None">None</option>
+                <option value="Q1">Q1</option>
+                <option value="Q2">Q2</option>
+                <option value="Q3">Q3</option>
+                <option value="Q4">Q4</option>
+            </select>
+
+            <label for="year">Publication year</label>
+            <input id="year" type="number" min="1900" max="2100" required />
+
+            <label for="doi">Link / DOI</label>
+            <input id="doi" type="text" />
+
+            <div class="row-actions">
+                <button id="add-btn" type="submit">Add publication</button>
+                <button id="clear-form" type="button" class="secondary">Clear</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Filters -->
+    <div class="card">
+        <h2>Filters</h2>
+        <div class="filters">
+            <div class="filter-box">
+                <label for="filter-indexing">Filter by indexing</label>
+                <select id="filter-indexing">
+                    <option value="All">All</option>
+                    <option value="Scopus">Scopus</option>
+                    <option value="SCI">SCI</option>
+                    <option value="UGC">UGC</option>
+                    <option value="ESCI">ESCI</option>
+                    <option value="None / ESCI">None / ESCI</option>
+                </select>
+            </div>
+            <div class="filter-box">
+                <label for="filter-quartile">Filter by Quartile</label>
+                <select id="filter-quartile">
+                    <option value="All">All</option>
+                    <option value="Q1">Q1</option>
+                    <option value="Q2">Q2</option>
+                    <option value="Q3">Q3</option>
+                    <option value="Q4">Q4</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="card">
+        <h2>Dashboard</h2>
+        <div class="stats">
+            <div class="stat"><strong>Total publications:</strong> <span id="stat-total">0</span></div>
+            <div class="stat"><strong>Scopus:</strong> <span id="stat-scopus">0</span></div>
+            <div class="stat"><strong>SCI:</strong> <span id="stat-sci">0</span></div>
+            <div class="stat"><strong>UGC:</strong> <span id="stat-ugc">0</span></div>
+            <div class="stat"><strong>ESCI:</strong> <span id="stat-esci">0</span></div>
+            <div class="stat"><strong>None / ESCI:</strong> <span id="stat-none">0</span></div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+        <h2>Publication list</h2>
+        <table id="pub-table">
+            <thead>
+                <tr>
+                    <th>Faculty</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Indexing</th>
+                    <th>Quartile</th>
+                    <th>Year</th>
+                    <th>DOI</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Footer Names -->
+<div class="footer-names">
+    Developed By:<br>
+    D. Raj Kumar (251FD01015)<br>
+    P. Nithin Ravi Teja (251FD01037)<br>
+    Sd. Iffath Sameera (251FD01058)
+</div>
+
+<script>
+(function(){
+    const STORAGE_KEY = "faculty_publications_v2";
+    const form = document.getElementById("pub-form");
+    const tableBody = document.querySelector("#pub-table tbody");
+
+    const inputFaculty   = document.getElementById("faculty");
+    const inputTitle     = document.getElementById("title");
+    const inputType      = document.getElementById("type");
+    const inputIndexing  = document.getElementById("indexing");
+    const inputQuartile  = document.getElementById("quartile");
+    const inputYear      = document.getElementById("year");
+    const inputDOI       = document.getElementById("doi");
+
+    const filterIndexing = document.getElementById("filter-indexing");
+    const filterQuartile = document.getElementById("filter-quartile");
+
+    const statTotal  = document.getElementById("stat-total");
+    const statScopus = document.getElementById("stat-scopus");
+    const statSCI    = document.getElementById("stat-sci");
+    const statUGC    = document.getElementById("stat-ugc");
+    const statESCI   = document.getElementById("stat-esci");
+    const statNone   = document.getElementById("stat-none");
+
+    let publications = loadData();
+    let filters = { indexing: "All", quartile: "All" };
+
+    render();
+
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const pub = {
+            faculty: inputFaculty.value.trim(),
+            title: inputTitle.value.trim(),
+            type: inputType.value,
+            indexing: inputIndexing.value,
+            quartile: inputQuartile.value,
+            year: inputYear.value.trim(),
+            doi: inputDOI.value.trim()
+        };
+        publications.push(pub);
+        saveData(publications);
+        render();
+        form.reset();
+    });
+
+    filterIndexing.addEventListener("change", () => {
+        filters.indexing = filterIndexing.value;
+        render();
+    });
+
+    filterQuartile.addEventListener("change", () => {
+        filters.quartile = filterQuartile.value;
+        render();
+    });
+
+    function render() {
+        renderTable();
+        renderStats();
+    }
+
+    function renderTable() {
+        tableBody.innerHTML = "";
+        const rows = getFiltered(publications);
+
+        if (rows.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="7">No publications found.</td></tr>`;
+            return;
+        }
+
+        rows.forEach(p => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${p.faculty}</td>
+                <td>${p.title}</td>
+                <td>${p.type}</td>
+                <td>${p.indexing}</td>
+                <td>${p.quartile}</td>
+                <td>${p.year}</td>
+                <td>${p.doi}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    function renderStats() {
+        const data = getFiltered(publications);
+        statTotal.textContent  = data.length;
+        statScopus.textContent = data.filter(p => p.indexing === "Scopus").length;
+        statSCI.textContent    = data.filter(p => p.indexing === "SCI").length;
+        statUGC.textContent    = data.filter(p => p.indexing === "UGC").length;
+        statESCI.textContent   = data.filter(p => p.indexing === "ESCI").length;
+        statNone.textContent   = data.filter(p => p.indexing === "None / ESCI").length;
+    }
+
+    function getFiltered(data) {
+        return data.filter(p => {
+            const byIndex = (filters.indexing === "All" || p.indexing === filters.indexing);
+            const byQuart = (filters.quartile === "All" || p.quartile === filters.quartile);
+            return byIndex && byQuart;
+        });
+    }
+
+    function saveData(data) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadData() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+    }
+})();
+</script>
+
+</body>
+</html>
